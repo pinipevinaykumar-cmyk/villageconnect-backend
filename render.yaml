@@ -1,15 +1,11 @@
 services:
   - type: web
     name: villageconnect-backend
-    runtime: java
+    runtime: docker
     plan: free
     region: singapore
     branch: main
-    buildCommand: ./mvnw clean package -DskipTests
-    startCommand: java -Xmx400m -jar target/backend-0.0.1-SNAPSHOT.jar
     envVars:
-      - key: JAVA_VERSION
-        value: "17"
       - key: SPRING_DATASOURCE_URL
         value: jdbc:postgresql://ep-dry-base-ay243bi3.c-5.us-east-2.aws.neon.tech/neondb?sslmode=require
       - key: SPRING_DATASOURCE_USERNAME
