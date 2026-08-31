@@ -18,10 +18,13 @@ public class AuthService {
     private final JwtUtil jwtUtil;
 
     public AuthResponse register(RegisterRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
+        String normalizedEmail = normalizeEmail(request.getEmail());
+        String normalizedPhone = normalizePhone(request.getPhone());
+
+        if (userRepository.existsByEmail(normalizedEmail)) {
             throw new RuntimeException("Email already registered");
         }
-        if (userRepository.existsByPhone(request.getPhone())) {
+        if (userRepository.existsByPhone(normalizedPhone)) {
             throw new RuntimeException("Phone already registered");
         }
 
@@ -31,12 +34,12 @@ public class AuthService {
         }
 
         User user = User.builder()
-                .name(request.getName())
-                .email(request.getEmail())
-                .phone(request.getPhone())
-                .password(passwordEncoder.encode(request.getPassword()))
+                .name(request.getName().trim())
+                .email(normalizedEmail)
+                .phone(normalizedPhone)
+                .password(passwordEncoder.encode(request.getPassword().trim()))
                 .role(role)
-                .village(request.getVillage())
+                .village(request.getVillage() == null ? null : request.getVillage().trim())
                 .isActive(true)
                 .build();
 
@@ -55,8 +58,9 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.getEmailOrPhone())
-                .orElseGet(() -> userRepository.findByPhone(request.getEmailOrPhone())
+        String emailOrPhone = request.getEmailOrPhone() == null ? null : request.getEmailOrPhone().trim();
+        User user = userRepository.findByEmail(normalizeEmail(emailOrPhone))
+                .orElseGet(() -> userRepository.findByPhone(normalizePhone(emailOrPhone))
                         .orElseThrow(() -> new RuntimeException("User not found")));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
@@ -77,5 +81,21 @@ public class AuthService {
                 .role(user.getRole().name())
                 .userId(user.getId())
                 .build();
+    }
+
+    private String normalizeEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase();
+    }
+
+    private String normalizePhone(String phone) {
+        if (phone == null) {
+            return null;
+        }
+
+        String digits = phone.replaceAll("\\D+", "");
+        if (digits.length() > 10 && digits.startsWith("91")) {
+            digits = digits.substring(2);
+        }
+        return digits;
     }
 }

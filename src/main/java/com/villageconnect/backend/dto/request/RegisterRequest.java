@@ -12,7 +12,8 @@ public class RegisterRequest {
     @NotBlank @Email(message = "Valid email is required")
     private String email;
 
-    @NotBlank @Pattern(regexp = "^[6-9]\\d{9}$", message = "Valid Indian phone number required")
+    @NotBlank
+    @Pattern(regexp = "^\\+?[0-9]{7,15}$", message = "Valid phone number required")
     private String phone;
 
     @NotBlank @Size(min = 6, message = "Password must be at least 6 characters")
