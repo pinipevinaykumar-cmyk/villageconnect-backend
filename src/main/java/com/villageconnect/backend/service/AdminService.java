@@ -5,7 +5,6 @@ import com.villageconnect.backend.dto.response.AdminUserResponse;
 import com.villageconnect.backend.entity.Shop;
 import com.villageconnect.backend.entity.User;
 import com.villageconnect.backend.repository.ProductRepository;
-import com.villageconnect.backend.repository.ShopRepository;
 import com.villageconnect.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,12 +17,12 @@ import java.util.stream.Collectors;
 public class AdminService {
 
     private final UserRepository userRepository;
-    private final ShopRepository shopRepository;
     private final ProductRepository productRepository;
+    private final ShopService shopService;
 
     public AdminStatsResponse getStats() {
         List<User> users = userRepository.findAll();
-        List<Shop> shops = shopRepository.findAll();
+        List<Shop> shops = shopService.getAllShops();
 
         return AdminStatsResponse.builder()
                 .totalUsers(users.size())
@@ -51,7 +50,7 @@ public class AdminService {
     }
 
     public List<Shop> getAllShops() {
-        return shopRepository.findAll();
+        return shopService.getAllShops();
     }
 
     public void toggleUserActive(Long userId) {

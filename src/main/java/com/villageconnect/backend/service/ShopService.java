@@ -54,6 +54,12 @@ public class ShopService {
         return shopRepository.save(shop);
     }
 
+    public List<Shop> getAllShops() {
+        List<Shop> shops = shopRepository.findAll();
+        shops.forEach(this::updateAutoStatus);
+        return shops;
+    }
+
     public List<Shop> getShopsByVillage(String village) {
         List<Shop> shops = shopRepository.findByVillageAndIsActiveTrue(village);
         shops.forEach(this::updateAutoStatus);
