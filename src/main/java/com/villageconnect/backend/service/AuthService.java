@@ -8,6 +8,7 @@ import com.villageconnect.backend.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -18,14 +19,31 @@ public class AuthService {
     private final JwtUtil jwtUtil;
 
     public AuthResponse register(RegisterRequest request) {
-        String normalizedEmail = normalizeEmail(request.getEmail());
-        String normalizedPhone = normalizePhone(request.getPhone());
+        String cleanName = request.getName().trim().toLowerCase().replaceAll("\\s+", "_");
 
-        if (userRepository.existsByEmail(normalizedEmail)) {
+        // Auto-generate email and phone if not provided
+        boolean emailProvided = request.getEmail() != null && !request.getEmail().isBlank();
+        boolean phoneProvided = request.getPhone() != null && !request.getPhone().isBlank();
+
+        String normalizedEmail = emailProvided
+                ? normalizeEmail(request.getEmail())
+                : cleanName + "_" + UUID.randomUUID().toString().substring(0, 8) + "@villageconnect.test";
+
+        String normalizedPhone = phoneProvided
+                ? normalizePhone(request.getPhone())
+                : "vc_" + System.currentTimeMillis();
+
+        // Check duplicate only for user-supplied values
+        if (emailProvided && userRepository.existsByEmail(normalizedEmail)) {
             throw new RuntimeException("Email already registered");
         }
-        if (userRepository.existsByPhone(normalizedPhone)) {
+        if (phoneProvided && userRepository.existsByPhone(normalizedPhone)) {
             throw new RuntimeException("Phone already registered");
+        }
+
+        // Check duplicate username
+        if (userRepository.existsByName(request.getName().trim())) {
+            throw new RuntimeException("Username already taken");
         }
 
         User.Role role = User.Role.CUSTOMER;
@@ -61,7 +79,8 @@ public class AuthService {
         String emailOrPhone = request.getEmailOrPhone() == null ? null : request.getEmailOrPhone().trim();
         User user = userRepository.findByEmail(normalizeEmail(emailOrPhone))
                 .orElseGet(() -> userRepository.findByPhone(normalizePhone(emailOrPhone))
-                        .orElseThrow(() -> new RuntimeException("User not found")));
+                .orElseGet(() -> userRepository.findByName(emailOrPhone)
+                        .orElseThrow(() -> new RuntimeException("User not found"))));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid password");
