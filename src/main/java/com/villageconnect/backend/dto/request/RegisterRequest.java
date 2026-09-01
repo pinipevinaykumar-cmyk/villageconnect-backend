@@ -1,6 +1,8 @@
 package com.villageconnect.backend.dto.request;
 
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
@@ -13,7 +15,6 @@ public class RegisterRequest {
     private String email;
 
     @NotBlank
-    @Pattern(regexp = "^\\+?[0-9]{7,15}$", message = "Valid phone number required")
     private String phone;
 
     @NotBlank @Size(min = 6, message = "Password must be at least 6 characters")
