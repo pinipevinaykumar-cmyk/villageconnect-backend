@@ -37,4 +37,6 @@ public class ShopRequest {
 
     private Boolean is24Hours;
     private Boolean isDeliveryAvailable;
+
+    private String imageUrl;
 }

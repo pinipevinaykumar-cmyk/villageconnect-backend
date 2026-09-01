@@ -48,6 +48,7 @@ public class ShopService {
                 .currentStatus(Shop.ShopStatus.CLOSED)
                 .isManuallySet(false)
                 .isActive(true)
+                .imageUrl(request.getImageUrl())
                 .build();
 
         return shopRepository.save(shop);
@@ -122,6 +123,10 @@ public class ShopService {
             Category category = categoryRepository.findById(request.getCategoryId())
                     .orElse(null);
             shop.setCategory(category);
+        }
+
+        if (request.getImageUrl() != null && !request.getImageUrl().isBlank()) {
+            shop.setImageUrl(request.getImageUrl());
         }
 
         return shopRepository.save(shop);
